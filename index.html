@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+  <head>
+    <meta charset="utf-8">
+    <title>Twitch-Bot by Mecke_Dev</title>
+	
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+  </head>
+
+  <body class="bg-dark text-primary font-weight-bold mx-2" onload=load_settings()>
+	
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+    <p class="display-5 text-center">Login - Settings <br> (Please restart after changing this)</p>
+
+		<div class="input-group mb-3">
+
+			<div class="input-group-prepend">
+				<span class="input-group-text">Twitch-Username</span>
+			</div>
+
+			<input type="text" class="form-control" aria-label="Default" id="channelname" aria-describedby="inputGroup-sizing-default" placeholder="No Username set">
+		
+			<div class="input-group-append">
+				<button class="btn btn-success" onclick="save_name()" type="button">save</button>
+			</div>
+			
+		</div>
+		
+		<div class="input-group mb-3">
+
+			<div class="input-group-prepend">
+				<span class="input-group-text">Oauth-Token</span>
+			</div>
+
+			<input type="text" class="form-control" aria-label="Default" id="oauth" aria-describedby="inputGroup-sizing-default" placeholder="No Token found, do not show this Code on Stream!">
+		
+			<div class="input-group-append">
+				<button class="btn btn-primary" onclick="open_link('https://twitchapps.com/tmi/')" type="button">Get Oauth-Token here</button>
+				<button class="btn btn-success" onclick=save_oauth() type="button">save Token</button>
+			</div>
+			
+		</div>
+
+		<p class="display-5 text-center">Sounds</p>
+
+		<div id="sound_list"></div>
+
+		<h1 id="set_code" class="display-8 text-center text-dark bg-success">no Reward-ID found</h1>
+		<hr>
+		<button class="btn btn-success" onclick=location.reload(true) type="button">reload Page</button>
+
+	</div>
+
+	<script src="./bot.js"></script>
+
+    <script>
+
+		function check_sounds(){
+			
+			const config = require(__dirname + '/settings.json');
+
+			const directoryPath = path.join(__dirname, 'sounds');
+			//passsing directoryPath and callback function
+			fs.readdir(directoryPath, function (err, files) {
+				//handling error
+				if (err) {
+					return console.log('Unable to scan directory: ' + err);
+				}
+
+				for (s in config.sounds){
+					if (!files.includes(s)){
+						config.sounds[s] = undefined;
+					}
+				}
+
+				//listing all files using forEach
+				files.forEach(function (file) {
+					// Do whatever you want to do with the file
+
+					if (config.sounds[file]){
+						// console.log(file)
+					}
+					else{
+						config.sounds[file] = [false, 1]
+					}
+
+					fs.writeFile(__dirname + '/settings.json', JSON.stringify(config, null, 4), err => {
+						//console.log("saved")
+					})
+
+				})
+			});
+		}
+
+		function set_info(setting){
+
+			const config = require(__dirname + '/settings.json');
+			const fs = require("fs");
+
+			
+			var code = document.getElementById("set_code").innerHTML
+		  	document.getElementById(setting).value = code
+
+			var setting_val = document.getElementById(setting).value;
+			var vol = document.getElementById(setting + "_vol").value;
+			if (setting_val.split("-").length == 5){
+				config.sounds[setting] = [setting_val, vol];
+
+				fs.writeFile(__dirname + '/settings.json', JSON.stringify(config, null, 4), err => {
+					//console.log("saved")
+				})
+
+				load_settings();
+			}
+			else{
+				alert("You have to trigger the Event once to get the Reward-ID. ")
+			}
+
+		}
+
+		function set_vol(setting){
+
+			const config = require(__dirname + '/settings.json');
+			const fs = require("fs");
+			
+			var setting_val = document.getElementById(setting).value;
+			var vol = document.getElementById(setting + "_vol").value;
+
+			if (setting_val){
+			config.sounds[setting] = [setting_val, vol];
+			}
+			else{
+				config.sounds[setting][1] = vol/100;
+			}
+
+			fs.writeFile(__dirname + '/settings.json', JSON.stringify(config, null, 4), err => {
+				//console.log("saved")
+			})
+
+			load_settings();
+
+		}	
+
+		function save_key(setting, vol=100){
+
+			const config = require(__dirname + '/settings.json');
+			const fs = require("fs");
+
+			var setting_val = document.getElementById(setting).value;
+			if(setting_val){
+				config.sounds[setting] = [setting_val, vol/100];
+
+				fs.writeFile(__dirname + '/settings.json', JSON.stringify(config, null, 4), err => {
+					//console.log("saved")
+				})
+
+				load_settings();
+			}
+
+		}
+
+		function save_name(){
+
+			const config = require(__dirname + '/settings.json');
+			const fs = require("fs");
+
+			var channelname = document.getElementById("channelname").value;
+			if (channelname){
+				config.login.channelname = channelname;
+
+				fs.writeFile(__dirname + '/settings.json', JSON.stringify(config, null, 4), err => {
+					//console.log("saved")
+				})
+
+				load_settings();
+
+			}
+			else{
+				alert("You need to enter a Channelname first. ")
+			}
+
+		};
+
+		function save_oauth(){
+			const config = require(__dirname + '/settings.json');
+			const fs = require("fs");
+
+			var oauth = document.getElementById("oauth").value;
+			if (oauth.startsWith("oauth:")){
+				config.login.oauth = oauth;
+
+				fs.writeFile(__dirname + '/settings.json', JSON.stringify(config, null, 4), err => {
+					//console.log("saved")
+				})
+
+				load_settings();
+			}
+			else{
+				alert("You entered a wrong Oauth-Token, Token must begin with oauth: ")
+			}
+
+		};
+
+      	async function load_settings(){
+			  
+			await check_sounds();
+
+			const config = require(__dirname + '/settings.json');
+
+			if (config.login.oauth){
+				document.getElementById("oauth").value = "";
+				document.getElementById("oauth").placeholder = "Token was found, do not show on Stream.";
+			}
+
+			if (config.login.channelname){
+				document.getElementById("channelname").placeholder = config.login.channelname;
+			}
+
+			var sounds_list = "" 
+
+			for (var sound in config.sounds){
+
+				if(config.sounds[sound][0]){
+
+					sounds_list += `
+<div class="input-group mb-3">
+
+	<div class="input-group-prepend">
+		<span class="input-group-text">${sound}</span>
+	</div>
+
+	<input type="text" class="form-control" aria-label="Default" id="${sound}" aria-describedby="inputGroup-sizing-default" placeholder="${config.sounds[sound][0]}">
+	<input  class="form-control" id="${sound}_vol" type=number min=0 max=200 placeholder="${config.sounds[sound][1]*100}">
+
+	<div class="input-group-append">
+		<button class="btn btn-success" onclick="set_info('${sound}')" type="button">use Reward-ID</button>
+		<button class="btn btn-primary" onclick="set_vol('${sound}')" type="button">save</button>
+	</div>
+
+</div>
+
+				`
+
+				}
+				else{
+					sounds_list += `
+<div class="input-group mb-3">
+
+	<div class="input-group-prepend">
+		<span class="input-group-text">${sound}</span>
+	</div>
+
+	<input type="text" class="form-control" aria-label="Default" id="${sound}" aria-describedby="inputGroup-sizing-default" placeholder="No Code set">
+	<input  class="form-control" id="${sound}_vol" type=number min=0 max=200 placeholder="Volume in % | 0 - 200">
+
+	<div class="input-group-append">
+		<button class="btn btn-success" onclick="set_info('${sound}')" type="button">use Reward-ID</button>
+	</div>
+
+</div>
+
+				`
+				}
+
+			}
+
+			document.getElementById("sound_list").innerHTML = sounds_list;
+
+		};
+
+		function open_link(link){
+			require('electron').shell.openExternal(link);
+		}
+
+    </script>
+
+  </body>
+</html>

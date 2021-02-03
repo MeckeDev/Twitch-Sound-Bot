@@ -1,0 +1,27 @@
+{
+  "name": "twitch-sound-bot",
+  "version": "0.0.1",
+  "description": "A Bot to play Sounds via Channelpoints",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-packager . Twitch-Sound-Bot --platform=win32 --arch=x64"
+  },
+  "keywords": [
+    "Bot",
+    "Sound",
+    "Stream",
+    "Channelpoints",
+    "Twitch",
+    "Soundboard"
+  ],
+  "author": "Mecke_Dev",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^11.2.1"
+  },
+  "dependencies": {
+    "sound-play": "^1.1.0",
+    "tmi.js": "^1.7.1"
+  }
+}
